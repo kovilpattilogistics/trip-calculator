@@ -1,27 +1,32 @@
 {
-  "name": "eco-express-logistics",
+  "name": "trip-calculator",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@google/genai": "^1.34.0",
-    "firebase": "^10.8.0",
+    "clsx": "^2.1.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
+    "next": "^16.1.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-leaflet": "^5.0.0",
+    "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/leaflet": "^1.9.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.1"
+    "postcss": "^8.5.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.5.3"
   }
 }
