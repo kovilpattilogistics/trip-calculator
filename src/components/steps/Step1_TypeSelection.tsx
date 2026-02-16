@@ -7,6 +7,7 @@ import { clsx } from 'clsx';
 
 export function Step1TypeSelection() {
     const { data, updateData, goToNextStep, goToPreviousStep } = useWizard();
+    const [showInfo, setShowInfo] = React.useState<string | null>(null);
 
     const handleDeliverySelect = (type: 'single' | 'multiple') => {
         updateData({ deliveryType: type });
@@ -16,42 +17,53 @@ export function Step1TypeSelection() {
         updateData({ serviceType: type });
     };
 
+    const toggleInfo = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setShowInfo(showInfo === id ? null : id);
+    };
+
     const serviceTypes = [
         {
             id: 'scheduled' as const,
-            label: 'Scheduled',
-            desc: 'Mon/Wed/Fri/Sat. Book by 8 PM.',
+            label: 'Standard (Shared)',
+            desc: 'Cheapest option. Goods share the truck.',
             icon: Calendar,
             color: 'text-blue-600',
             bg: 'bg-blue-50',
-            bgSolid: 'bg-blue-500',
+            bgSolid: 'bg-blue-600',
             ring: 'ring-blue-500',
             border: 'border-blue-500',
             gradient: 'from-blue-50 to-blue-100/50',
+            badge: '💰 Best Value',
+            info: 'We combine your goods with others. It takes a bit longer but saves you money!',
         },
         {
             id: 'dedicated' as const,
-            label: 'Dedicated',
-            desc: 'Exclusive vehicle, door-to-door.',
+            label: 'Full Vehicle',
+            desc: 'Private truck just for you.',
             icon: TruckIcon,
             color: 'text-orange-600',
             bg: 'bg-orange-50',
-            bgSolid: 'bg-orange-500',
+            bgSolid: 'bg-orange-600',
             ring: 'ring-orange-500',
             border: 'border-orange-500',
             gradient: 'from-orange-50 to-orange-100/50',
+            badge: '⭐ Private',
+            info: 'You get the whole truck. No sharing. Best for large loads or sensitive items.',
         },
         {
             id: 'express' as const,
-            label: 'Express',
-            desc: 'Priority same-day delivery.',
+            label: 'Urgent',
+            desc: 'Priority speed. Same day delivery.',
             icon: Zap,
             color: 'text-purple-600',
             bg: 'bg-purple-50',
-            bgSolid: 'bg-purple-500',
+            bgSolid: 'bg-purple-600',
             ring: 'ring-purple-500',
             border: 'border-purple-500',
             gradient: 'from-purple-50 to-purple-100/50',
+            badge: '⚡ Fastest',
+            info: 'We drop everything to deliver your goods immediately. Costs a bit more.',
         },
     ];
 
@@ -68,126 +80,138 @@ export function Step1TypeSelection() {
                     <div className="w-8" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    Configure your delivery
+                    What are you sending?
                 </h2>
+                <p className="text-sm text-gray-500 mt-1">Choose the best option for your goods.</p>
             </div>
 
-            <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+            <div className="flex-1 p-6 space-y-8 overflow-y-auto">
 
                 {/* Delivery Type */}
                 <section>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block">
-                        Delivery Type
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block flex items-center gap-2">
+                        1. Trip Type <span className="text-gray-300 font-normal normal-case">(Click one)</span>
                     </label>
-                    <div className="flex gap-3">
-                        {/* Single Drop */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Direct Trip */}
                         <button
                             onClick={() => handleDeliverySelect('single')}
                             className={clsx(
-                                'flex-1 text-left bg-white p-4 rounded-2xl shadow-sm border-2 transition-all duration-300',
+                                'flex flex-col text-left bg-white p-4 rounded-2xl shadow-sm border-2 transition-all duration-300 relative overflow-hidden',
                                 data.deliveryType === 'single'
-                                    ? 'border-[var(--primary)] bg-gradient-to-br from-green-50 to-emerald-50 shadow-md ring-1 ring-[var(--primary)] scale-[1.02]'
+                                    ? 'border-[var(--primary)] bg-green-50/50 shadow-md ring-1 ring-[var(--primary)] scale-[1.02]'
                                     : 'border-transparent hover:border-gray-200 hover:shadow-md'
                             )}
                         >
-                            <div className="flex items-center gap-3">
-                                <div className={clsx(
-                                    "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all",
-                                    data.deliveryType === 'single' ? "bg-[var(--primary)] text-white shadow-lg shadow-green-200" : "bg-gray-100 text-gray-500"
-                                )}>
-                                    <Store className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className={clsx("font-bold text-sm", data.deliveryType === 'single' ? "text-[var(--primary)]" : "text-gray-900")}>
-                                        SINGLE DROP
-                                    </h3>
-                                    <p className="text-xs text-gray-500">One pickup → one drop</p>
-                                </div>
+                            {data.deliveryType === 'single' && <div className="absolute top-0 right-0 w-8 h-8 bg-[var(--primary)] -mr-4 -mt-4 rotate-45" />}
+                            <div className={clsx(
+                                "w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors",
+                                data.deliveryType === 'single' ? "bg-[var(--primary)] text-white" : "bg-gray-100 text-gray-400"
+                            )}>
+                                <Store className="w-6 h-6" />
                             </div>
+                            <h3 className={clsx("font-bold text-base leading-tight", data.deliveryType === 'single' ? "text-[var(--primary)]" : "text-gray-900")}>
+                                Direct Trip
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">Pickup ➔ Drop</p>
                         </button>
 
-                        {/* Multiple Drop */}
+                        {/* Multi-Stop */}
                         <button
                             onClick={() => handleDeliverySelect('multiple')}
                             className={clsx(
-                                'flex-1 text-left bg-white p-4 rounded-2xl shadow-sm border-2 transition-all duration-300',
+                                'flex flex-col text-left bg-white p-4 rounded-2xl shadow-sm border-2 transition-all duration-300 relative overflow-hidden',
                                 data.deliveryType === 'multiple'
-                                    ? 'border-[var(--primary)] bg-gradient-to-br from-green-50 to-emerald-50 shadow-md ring-1 ring-[var(--primary)] scale-[1.02]'
+                                    ? 'border-[var(--primary)] bg-green-50/50 shadow-md ring-1 ring-[var(--primary)] scale-[1.02]'
                                     : 'border-transparent hover:border-gray-200 hover:shadow-md'
                             )}
                         >
-                            <div className="flex items-center gap-3">
-                                <div className={clsx(
-                                    "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all",
-                                    data.deliveryType === 'multiple' ? "bg-[var(--primary)] text-white shadow-lg shadow-green-200" : "bg-gray-100 text-gray-500"
-                                )}>
-                                    <Truck className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className={clsx("font-bold text-sm", data.deliveryType === 'multiple' ? "text-[var(--primary)]" : "text-gray-900")}>
-                                        MULTIPLE DROP
-                                    </h3>
-                                    <p className="text-xs text-gray-500">2-30 drop stops</p>
-                                </div>
+                            {data.deliveryType === 'multiple' && <div className="absolute top-0 right-0 w-8 h-8 bg-[var(--primary)] -mr-4 -mt-4 rotate-45" />}
+                            <div className={clsx(
+                                "w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors",
+                                data.deliveryType === 'multiple' ? "bg-[var(--primary)] text-white" : "bg-gray-100 text-gray-400"
+                            )}>
+                                <Truck className="w-6 h-6" />
                             </div>
+                            <h3 className={clsx("font-bold text-base leading-tight", data.deliveryType === 'multiple' ? "text-[var(--primary)]" : "text-gray-900")}>
+                                Multi-Stop
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">Many Drops (2+)</p>
                         </button>
                     </div>
                 </section>
 
                 {/* Service Type */}
                 <section>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block">
-                        Service Type
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block flex items-center gap-2">
+                        2. Service Level <span className="text-gray-300 font-normal normal-case">(Choose speed/cost)</span>
                     </label>
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                         {serviceTypes.map((svc) => {
                             const Icon = svc.icon;
                             const isSelected = data.serviceType === svc.id;
+                            const isInfoOpen = showInfo === svc.id;
+
                             return (
-                                <button
-                                    key={svc.id}
-                                    onClick={() => handleServiceSelect(svc.id)}
-                                    className={clsx(
-                                        'w-full text-left bg-white p-4 rounded-2xl shadow-sm border-2 transition-all duration-300 flex items-center gap-4',
-                                        isSelected
-                                            ? `${svc.border} bg-gradient-to-r ${svc.gradient} shadow-md ring-1 ${svc.ring} scale-[1.01]`
-                                            : 'border-transparent hover:border-gray-200 hover:shadow-md'
-                                    )}
-                                >
-                                    <div className={clsx(
-                                        "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all",
-                                        isSelected ? `${svc.bgSolid} text-white shadow-lg` : "bg-gray-100 text-gray-400"
-                                    )}>
-                                        <Icon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className={clsx("font-bold text-sm", isSelected ? svc.color : "text-gray-900")}>
-                                            {svc.label.toUpperCase()}
-                                        </h3>
-                                        <p className="text-xs text-gray-500 truncate">{svc.desc}</p>
-                                    </div>
-                                    {isSelected && (
-                                        <div className={clsx("w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md", svc.bgSolid)}>
-                                            ✓
+                                <div key={svc.id}>
+                                    <button
+                                        onClick={() => handleServiceSelect(svc.id)}
+                                        className={clsx(
+                                            'w-full text-left bg-white p-4 rounded-2xl shadow-sm border-2 transition-all duration-300 relative group',
+                                            isSelected
+                                                ? `${svc.border} bg-gradient-to-r ${svc.gradient} shadow-md ring-1 ${svc.ring}`
+                                                : 'border-transparent hover:border-gray-200 hover:shadow-md'
+                                        )}
+                                    >
+                                        {/* Badge */}
+                                        {svc.badge && (
+                                            <div className="absolute top-0 right-0 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg shadow-sm z-10">
+                                                {svc.badge}
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-start gap-4">
+                                            <div className={clsx(
+                                                "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-sm",
+                                                isSelected ? `${svc.bgSolid} text-white` : "bg-gray-100 text-gray-400"
+                                            )}>
+                                                <Icon className="w-6 h-6" />
+                                            </div>
+                                            <div className="flex-1 min-w-0 pt-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className={clsx("font-bold text-base", isSelected ? svc.color : "text-gray-900")}>
+                                                        {svc.label}
+                                                    </h3>
+                                                    <div
+                                                        role="button"
+                                                        onClick={(e) => toggleInfo(e, svc.id)}
+                                                        className="text-gray-300 hover:text-gray-500 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                                    >
+                                                        <span className="text-xs border border-gray-300 rounded-full w-4 h-4 flex items-center justify-center font-serif italic">i</span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-gray-500 leading-tight mt-1">{svc.desc}</p>
+                                            </div>
+                                            {isSelected && (
+                                                <div className={clsx("w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md self-center", svc.bgSolid)}>
+                                                    ✓
+                                                </div>
+                                            )}
+                                        </div>
+                                    </button>
+
+                                    {/* Inline Info Expansion */}
+                                    {isInfoOpen && (
+                                        <div className="mt-2 mx-2 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-600 flex items-start gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                            <span className="text-lg">💡</span>
+                                            <p>{svc.info}</p>
                                         </div>
                                     )}
-                                </button>
+                                </div>
                             );
                         })}
                     </div>
                 </section>
-
-                {/* Service info tip */}
-                {data.serviceType && (
-                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 text-xs text-amber-800 font-medium flex items-start gap-2.5">
-                        <span className="text-base">💡</span>
-                        <span>
-                            {data.serviceType === 'scheduled' && 'Scheduled routes run Mon/Wed/Fri/Sat. Book by previous day 8 PM for next-day delivery.'}
-                            {data.serviceType === 'dedicated' && 'Dedicated trips give you an exclusive vehicle. Best for urgent or heavy shipments.'}
-                            {data.serviceType === 'express' && 'Express is 1.7× the scheduled rate for same-day priority delivery.'}
-                        </span>
-                    </div>
-                )}
             </div>
 
             {/* Footer */}
