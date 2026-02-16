@@ -199,221 +199,234 @@ export function Step2Location() {
                     <div className="w-8" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    {data.deliveryType === 'single' ? 'Enter Locations' : 'Route Details'}
+                    Where are we going?
                 </h2>
+                <p className="text-sm text-gray-500 mt-1">Enter start and end points.</p>
             </div>
 
-            <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+            <div className="flex-1 p-6 space-y-8 overflow-y-auto">
 
-                {/* Pickup Location */}
-                <div className="relative">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">Pickup Location</label>
-                    <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                            <MapPin className="w-5 h-5 text-green-600" />
-                        </div>
-                        <input
-                            type="text"
-                            value={data.pickupLocation}
-                            onChange={(e) => handleSearch(e.target.value, 'pickup')}
-                            onFocus={() => setActiveSearchField('pickup')}
-                            onBlur={() => handleBlurGeocode('pickup')}
-                            placeholder="Enter pickup location..."
-                            className={clsx(
-                                "w-full pl-12 pr-12 py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg",
-                                showErrors && !pickupValid
-                                    ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
-                                    : "border-gray-200 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
-                            )}
-                        />
-                        {showErrors && !pickupValid && (
-                            <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* Pickup location is required</p>
-                        )}
-                        {/* Map Picker CTA */}
-                        <button
-                            onClick={() => openMapPicker('pickup')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-600 rounded-lg transition-colors border border-gray-200"
-                            title="Pick on Map"
-                        >
-                            <Map className="w-5 h-5" />
-                        </button>
-                    </div>
-                    {/* Suggestions for pickup */}
-                    {activeSearchField === 'pickup' && suggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-30 max-h-60 overflow-y-auto">
-                            {suggestions.map((town) => (
-                                <button
-                                    key={town}
-                                    onClick={() => selectSuggestion(town)}
-                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-center gap-3"
-                                >
-                                    <MapPin className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-700">{town}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                <div className="relative space-y-8">
+                    {/* Visual Connector Line */}
+                    <div className="absolute left-[29px] top-12 bottom-12 w-0.5 border-l-2 border-dashed border-gray-300 z-0" />
 
-                {/* Multiple Shops: Dynamic Stops List */}
-                {data.deliveryType === 'multiple' && (
-                    <div className="space-y-4">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block">
-                            intermediate Stops ({data.stops.length})
+                    {/* Pickup Location */}
+                    <div className="relative z-10">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px] font-bold">1</span>
+                            Pickup Point <span className="text-green-600">(Start)</span>
                         </label>
-
-                        {data.stops.map((stop, index) => (
-                            <div key={index} className="relative group animate-in fade-in slide-in-from-left-4 duration-300">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 relative">
-                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold">
-                                            {String.fromCharCode(65 + index)}
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={stop}
-                                            onChange={(e) => {
-                                                const newStops = [...data.stops];
-                                                newStops[index] = e.target.value;
-                                                updateData({ stops: newStops, stopsCount: newStops.length });
-                                                handleSearch(e.target.value, 'stop', index);
-                                            }}
-                                            placeholder={`Stop ${String.fromCharCode(65 + index)}`}
-                                            className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 outline-none transition-all text-sm font-medium"
-                                        />
-                                        {/* Map Picker CTA */}
-                                        <button
-                                            onClick={() => openMapPicker(`stop-${index}`)}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-600 rounded-lg transition-colors border border-gray-200"
-                                            title="Pick on Map"
-                                        >
-                                            <Map className="w-4 h-4" />
-                                        </button>
-                                        {/* Suggestions for this specific input */}
-                                        {activeSearchField === `stop-${index}` && suggestions.length > 0 && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-100 z-50 max-h-48 overflow-y-auto">
-                                                {suggestions.map((town) => (
-                                                    <button
-                                                        key={town}
-                                                        onClick={() => {
-                                                            const newStops = [...data.stops];
-                                                            newStops[index] = town;
-                                                            updateData({ stops: newStops, stopsCount: newStops.length });
-                                                            setSuggestions([]);
-                                                            setActiveSearchField(null);
-                                                        }}
-                                                        className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 block"
-                                                    >
-                                                        {town}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            const newStops = data.stops.filter((_, i) => i !== index);
-                                            updateData({ stops: newStops, stopsCount: newStops.length });
-                                        }}
-                                        className="p-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        <div className="w-5 h-5 flex items-center justify-center font-bold">×</div>
-                                    </button>
-                                </div>
+                        <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 z-10">
+                                <div className="w-3 h-3 rounded-full bg-green-500 ring-4 ring-green-100" />
                             </div>
-                        ))}
-
-                        <button
-                            onClick={() => {
-                                const newStops = [...(data.stops || []), ''];
-                                updateData({ stops: newStops, stopsCount: newStops.length });
-                            }}
-                            className="w-full py-3 border-2 border-dashed border-[var(--primary)] text-[var(--primary)] rounded-xl font-bold text-sm hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <span>+ Add Stop</span>
-                        </button>
-                    </div>
-                )}
-
-
-                {/* Drop Location */}
-                <div className="relative">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block">
-                        {data.deliveryType === 'single' ? 'Drop Location' : 'End Point (Last Shop)'}
-                    </label>
-                    <div className="relative">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                            <MapPin className="w-5 h-5 text-red-500" />
-                        </div>
-                        <input
-                            type="text"
-                            value={data.deliveryType === 'single' ? data.dropLocation : data.endLocation}
-                            onChange={(e) => handleSearch(e.target.value, data.deliveryType === 'single' ? 'drop' : 'end')}
-                            onFocus={() => setActiveSearchField(data.deliveryType === 'single' ? 'drop' : 'end')}
-                            onBlur={() => handleBlurGeocode(data.deliveryType === 'single' ? 'drop' : 'end')}
-                            placeholder="Search area or village..."
-                            className={clsx(
-                                "w-full pl-12 pr-14 py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg",
-                                showErrors && !dropValid
-                                    ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
-                                    : "border-gray-200 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
+                            <input
+                                type="text"
+                                value={data.pickupLocation}
+                                onChange={(e) => handleSearch(e.target.value, 'pickup')}
+                                onFocus={() => setActiveSearchField('pickup')}
+                                onBlur={() => handleBlurGeocode('pickup')}
+                                placeholder="Where to pick up?"
+                                className={clsx(
+                                    "w-full pl-12 pr-12 py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
+                                    showErrors && !pickupValid
+                                        ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
+                                        : "border-gray-100 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
+                                )}
+                            />
+                            {showErrors && !pickupValid && (
+                                <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* Pickup location is required</p>
                             )}
-                        />
-                        {showErrors && !dropValid && (
-                            <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* {data.deliveryType === 'single' ? 'Drop' : 'End point'} location is required</p>
+                            {/* Map Picker CTA */}
+                            <button
+                                onClick={() => openMapPicker('pickup')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors border border-gray-100"
+                                title="Pick on Map"
+                            >
+                                <Map className="w-5 h-5" />
+                            </button>
+                        </div>
+                        {/* Suggestions for pickup */}
+                        {activeSearchField === 'pickup' && suggestions.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-30 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                                {suggestions.map((town) => (
+                                    <button
+                                        key={town}
+                                        onClick={() => selectSuggestion(town)}
+                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-center gap-3"
+                                    >
+                                        <MapPin className="w-4 h-4 text-gray-400" />
+                                        <span className="text-gray-700">{town}</span>
+                                    </button>
+                                ))}
+                            </div>
                         )}
-                        {/* Map Picker CTA */}
-                        <button
-                            onClick={() => openMapPicker(data.deliveryType === 'single' ? 'drop' : 'end')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-600 rounded-lg transition-colors border border-gray-200"
-                            title="Pick on Map"
-                        >
-                            <Map className="w-5 h-5" />
-                        </button>
                     </div>
 
-                    {/* Suggestions */}
-                    {activeSearchField && ['drop', 'end'].includes(activeSearchField) && suggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-30 max-h-60 overflow-y-auto">
-                            {suggestions.map((town) => (
-                                <button
-                                    key={town}
-                                    onClick={() => selectSuggestion(town)}
-                                    className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-center gap-3"
-                                >
-                                    <MapPin className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-700">{town}</span>
-                                </button>
+                    {/* Multiple Shops: Dynamic Stops List */}
+                    {data.deliveryType === 'multiple' && (
+                        <div className="space-y-4 pl-0">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wide block ml-8">
+                                Stops Between
+                            </label>
+
+                            {data.stops.map((stop, index) => (
+                                <div key={index} className="relative z-10 group animate-in fade-in slide-in-from-left-4 duration-300">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 relative">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 z-10">
+                                                <div className="w-2 h-2 rounded-full bg-gray-400 ring-4 ring-gray-100" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={stop}
+                                                onChange={(e) => {
+                                                    const newStops = [...data.stops];
+                                                    newStops[index] = e.target.value;
+                                                    updateData({ stops: newStops, stopsCount: newStops.length });
+                                                    handleSearch(e.target.value, 'stop', index);
+                                                }}
+                                                placeholder={`Stop ${index + 1}`}
+                                                className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 outline-none transition-all text-sm font-medium bg-white shadow-sm"
+                                            />
+                                            {/* Map Picker CTA */}
+                                            <button
+                                                onClick={() => openMapPicker(`stop-${index}`)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors border border-gray-100"
+                                                title="Pick on Map"
+                                            >
+                                                <Map className="w-4 h-4" />
+                                            </button>
+                                            {/* Suggestions for this specific input */}
+                                            {activeSearchField === `stop-${index}` && suggestions.length > 0 && (
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-100 z-50 max-h-48 overflow-y-auto">
+                                                    {suggestions.map((town) => (
+                                                        <button
+                                                            key={town}
+                                                            onClick={() => {
+                                                                const newStops = [...data.stops];
+                                                                newStops[index] = town;
+                                                                updateData({ stops: newStops, stopsCount: newStops.length });
+                                                                setSuggestions([]);
+                                                                setActiveSearchField(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 block"
+                                                        >
+                                                            {town}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const newStops = data.stops.filter((_, i) => i !== index);
+                                                updateData({ stops: newStops, stopsCount: newStops.length });
+                                            }}
+                                            className="p-3 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <div className="w-5 h-5 flex items-center justify-center font-bold">×</div>
+                                        </button>
+                                    </div>
+                                </div>
                             ))}
+
+                            <div className="pl-0">
+                                <button
+                                    onClick={() => {
+                                        const newStops = [...(data.stops || []), ''];
+                                        updateData({ stops: newStops, stopsCount: newStops.length });
+                                    }}
+                                    className="w-full py-3 bg-gray-50 border border-dashed border-gray-300 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-100 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <span>+ Add Stop in Between</span>
+                                </button>
+                            </div>
                         </div>
                     )}
+
+
+                    {/* Drop Location */}
+                    <div className="relative z-10">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">2</span>
+                            {data.deliveryType === 'single' ? 'Drop Point' : 'Final Destination'} <span className="text-red-600">(End)</span>
+                        </label>
+                        <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 z-10">
+                                <div className="w-3 h-3 rounded-full bg-red-500 ring-4 ring-red-100" />
+                            </div>
+                            <input
+                                type="text"
+                                value={data.deliveryType === 'single' ? data.dropLocation : data.endLocation}
+                                onChange={(e) => handleSearch(e.target.value, data.deliveryType === 'single' ? 'drop' : 'end')}
+                                onFocus={() => setActiveSearchField(data.deliveryType === 'single' ? 'drop' : 'end')}
+                                onBlur={() => handleBlurGeocode(data.deliveryType === 'single' ? 'drop' : 'end')}
+                                placeholder="Where to deliver?"
+                                className={clsx(
+                                    "w-full pl-12 pr-14 py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
+                                    showErrors && !dropValid
+                                        ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
+                                        : "border-gray-100 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
+                                )}
+                            />
+                            {showErrors && !dropValid && (
+                                <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* {data.deliveryType === 'single' ? 'Drop' : 'End point'} location is required</p>
+                            )}
+                            {/* Map Picker CTA */}
+                            <button
+                                onClick={() => openMapPicker(data.deliveryType === 'single' ? 'drop' : 'end')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors border border-gray-100"
+                                title="Pick on Map"
+                            >
+                                <Map className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Suggestions */}
+                        {activeSearchField && ['drop', 'end'].includes(activeSearchField) && suggestions.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-30 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                                {suggestions.map((town) => (
+                                    <button
+                                        key={town}
+                                        onClick={() => selectSuggestion(town)}
+                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-center gap-3"
+                                    >
+                                        <MapPin className="w-4 h-4 text-gray-400" />
+                                        <span className="text-gray-700">{town}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Live Route Map */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden relative z-0" style={{ isolation: 'isolate' }}>
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden relative z-0 mt-8" style={{ isolation: 'isolate' }}>
                     {routeWaypoints.length >= 2 ? (
                         <>
-                            <div className="h-[180px] w-full">
+                            <div className="h-[200px] w-full">
                                 <RouteMap waypoints={routeWaypoints} />
                             </div>
-                            <div className="p-3 flex items-center justify-between text-sm border-t border-gray-100">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className="w-2 h-2 rounded-full bg-green-600 shrink-0" />
-                                    <span className="text-gray-600 font-medium truncate text-xs">{data.pickupLocation.split(',')[0]}</span>
-                                    <span className="text-gray-400">→</span>
-                                    <span className="w-2 h-2 rounded-full bg-red-600 shrink-0" />
-                                    <span className="text-gray-600 font-medium truncate text-xs">{(data.deliveryType === 'single' ? data.dropLocation : data.endLocation).split(',')[0] || '...'}</span>
+                            <div className="p-4 flex items-center justify-between text-sm border-t border-gray-100 bg-gray-50/50">
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Distance</span>
+                                    <span className="font-bold text-gray-900 text-lg">{distance} km</span>
                                 </div>
-                                <span className="font-bold text-gray-900 shrink-0 ml-2">{distance} km</span>
+                                <div className="text-right">
+                                    <span className="text-xs text-green-600 font-bold bg-green-100 px-2 py-1 rounded-full">
+                                        Route Ready ✓
+                                    </span>
+                                </div>
                             </div>
                         </>
                     ) : (
-                        <div className="h-[120px] flex items-center justify-center">
-                            <div className="text-center">
-                                <div className="w-16 h-16 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
-                                    <Map className="w-7 h-7 text-gray-300" />
+                        <div className="h-[140px] flex items-center justify-center bg-gray-50/50">
+                            <div className="text-center opacity-60">
+                                <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                                    <Map className="w-5 h-5 text-gray-400" />
                                 </div>
-                                <p className="text-xs text-gray-400 font-medium">Enter pickup & drop to preview route</p>
+                                <p className="text-xs text-gray-500 font-medium">Enter locations to see map</p>
                             </div>
                         </div>
                     )}
