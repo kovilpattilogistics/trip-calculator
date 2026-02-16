@@ -15,8 +15,10 @@ interface LocationPickerModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: (location: string) => void;
-    initialLocation: string;
+    initialLocation?: string;
     title?: string;
+    defaultLat?: number;
+    defaultLng?: number;
 }
 
 interface SearchResult {
@@ -26,7 +28,7 @@ interface SearchResult {
     display_name: string;
 }
 
-export function LocationPickerModal({ isOpen, onClose, onConfirm, initialLocation, title }: LocationPickerModalProps) {
+export function LocationPickerModal({ isOpen, onClose, onConfirm, initialLocation, title, defaultLat, defaultLng }: LocationPickerModalProps) {
     const [selectedCoords, setSelectedCoords] = useState('');
     const [resolvedName, setResolvedName] = useState('');
     const [isResolving, setIsResolving] = useState(false);
@@ -35,6 +37,34 @@ export function LocationPickerModal({ isOpen, onClose, onConfirm, initialLocatio
     const [isSearching, setIsSearching] = useState(false);
     const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
     const resolveRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+    // Initialize map center when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            // Priority 1: Use initialLocation if it contains coordinates
+            const coordMatch = initialLocation?.match(/^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/);
+            if (coordMatch) {
+                const lat = parseFloat(coordMatch[1]);
+                const lng = parseFloat(coordMatch[2]);
+                setMapCenter([lat, lng]);
+                setSelectedCoords(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+                // If it's a known location, maybe we don't resolve name immediately? Or do we?
+                // For now, let's leave resolvedName empty or set it to initialLocation if it's not just coords.
+                // But initialLocation might be "Some Place" which we can't map center on easily.
+            } else if (defaultLat && defaultLng) {
+                // Priority 2: Use provided defaults
+                setMapCenter([defaultLat, defaultLng]);
+            } else {
+                // Fallback (Map component has its own default)
+                setMapCenter(undefined);
+            }
+
+            // Reset search query
+            setSearchQuery('');
+            setSearchResults([]);
+        }
+    }, [isOpen, initialLocation, defaultLat, defaultLng]);
+
 
     // Debounce search
     useEffect(() => {

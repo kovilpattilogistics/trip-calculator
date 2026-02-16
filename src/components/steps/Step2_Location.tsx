@@ -26,9 +26,65 @@ export function Step2Location() {
     // Map Picker State
     const [showMapPicker, setShowMapPicker] = useState(false);
     const [pickerField, setPickerField] = useState<string | null>(null);
+    const [mapDefaults, setMapDefaults] = useState<{ lat: number; lng: number } | undefined>(undefined);
 
     const openMapPicker = (field: string) => {
         setPickerField(field);
+
+        // Smart Default Center Logic
+        let defaultCenter: { lat: number; lng: number } | undefined = undefined;
+
+        // Helper to extract lat/lng from data if it exists
+        const getLatLng = (key: 'pickup' | 'drop' | 'end' | string): { lat: number; lng: number } | null => {
+            if (key === 'pickup') return data.pickupLatLng || null;
+            if (key === 'drop') return data.dropLatLng || null;
+            if (key === 'end') return data.endLatLng || null;
+            if (key.startsWith('stop-')) {
+                const idx = parseInt(key.split('-')[1]);
+                return data.stopsLatLng?.[idx] || null;
+            }
+            return null;
+        };
+
+        // 1. If currently selected field has coordinates, use them (handled by modal via initialLocation usually, but we can enforce)
+        const currentFieldLatLng = getLatLng(field);
+        if (currentFieldLatLng) {
+            defaultCenter = currentFieldLatLng;
+        } else {
+            // 2. If empty, calculate default based on rules
+            if (field === 'pickup') {
+                // Default: Kovilpatti (9.172868, 77.869002)
+                defaultCenter = { lat: 9.172868, lng: 77.869002 };
+            } else if (field.startsWith('stop-')) {
+                const idx = parseInt(field.split('-')[1]);
+                if (idx === 0) {
+                    // Stop 1 defaults to Pickup location
+                    defaultCenter = getLatLng('pickup') || { lat: 9.172868, lng: 77.869002 };
+                } else {
+                    // Stop N defaults to Stop N-1 location
+                    defaultCenter = getLatLng(`stop-${idx - 1}`) || getLatLng('pickup') || { lat: 9.172868, lng: 77.869002 };
+                }
+            } else if (field === 'drop' || field === 'end') {
+                if (data.deliveryType === 'multiple' && data.stopsLatLng && data.stopsLatLng.length > 0) {
+                    // Defaults to last stop
+                    const lastStopIndex = data.stopsLatLng.length - 1;
+                    // Find the last valid stop latlng
+                    let lastValidStop = null;
+                    for (let i = lastStopIndex; i >= 0; i--) {
+                        if (data.stopsLatLng[i]) {
+                            lastValidStop = data.stopsLatLng[i];
+                            break;
+                        }
+                    }
+                    defaultCenter = lastValidStop || getLatLng('pickup') || { lat: 9.172868, lng: 77.869002 };
+                } else {
+                    // Defaults to pickup
+                    defaultCenter = getLatLng('pickup') || { lat: 9.172868, lng: 77.869002 };
+                }
+            }
+        }
+
+        setMapDefaults(defaultCenter);
         setShowMapPicker(true);
     };
 
@@ -241,30 +297,28 @@ export function Step2Location() {
                 onClick={() => handleCurrentLocation(field)}
                 disabled={detectingLocation === field}
                 className={clsx(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border",
+                    "w-8 h-8 flex items-center justify-center rounded-lg transition-colors border",
                     detectingLocation === field
                         ? "bg-green-50 text-green-600 border-green-200"
-                        : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
+                        : "bg-white text-blue-500 border-blue-100 hover:bg-blue-50 hover:text-blue-600"
                 )}
-                title="Use Current Location"
+                title="Detect Current Location"
             >
                 {detectingLocation === field ? (
-                    <span className="animate-pulse">Detecting...</span>
+                    <div className="w-4 h-4 rounded-full border-2 border-green-600 border-t-transparent animate-spin" />
                 ) : (
-                    <>
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                        Detect
-                    </>
+                    /* Target Icon */
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>
                 )}
             </button>
-            <div className="w-px h-4 bg-gray-200 mx-0.5" />
+            <div className="w-px h-5 bg-gray-100 mx-0.5" />
             <button
                 onClick={() => openMapPicker(field)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg transition-colors text-xs font-bold uppercase tracking-wider"
                 title="Pick on Map"
             >
-                <Map className="w-3 h-3" />
-                Map
+                <Map className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Map</span>
             </button>
         </div>
     );
@@ -311,7 +365,7 @@ export function Step2Location() {
                                 onBlur={() => handleBlurGeocode('pickup')}
                                 placeholder="Where to pick up?"
                                 className={clsx(
-                                    "w-full pl-12 pr-[160px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
+                                    "w-full pl-12 pr-[140px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
                                     showErrors && !pickupValid
                                         ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
                                         : "border-gray-100 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
@@ -348,8 +402,8 @@ export function Step2Location() {
 
                             {data.stops.map((stop, index) => (
                                 <div key={index} className="relative z-10 group animate-in fade-in slide-in-from-left-4 duration-300">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 relative">
+                                    <div className="relative"> {/* Use relative here to scope the button */}
+                                        <div className="relative flex-1">
                                             <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 z-10">
                                                 <div className="w-2 h-2 rounded-full bg-gray-400 ring-4 ring-gray-100" />
                                             </div>
@@ -363,9 +417,50 @@ export function Step2Location() {
                                                     handleSearch(e.target.value, 'stop', index);
                                                 }}
                                                 placeholder={`Stop ${index + 1}`}
-                                                className="w-full pl-10 pr-[150px] py-3 rounded-xl border border-gray-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 outline-none transition-all text-sm font-medium bg-white shadow-sm"
+                                                className="w-full pl-10 pr-[170px] py-3 rounded-xl border border-gray-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 outline-none transition-all text-sm font-medium bg-white shadow-sm"
                                             />
-                                            <InputActions field={`stop-${index}`} />
+                                            {/* Container for Actions + Delete */}
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                                {/* Custom Input Actions (Detect + Map) */}
+                                                <button
+                                                    onClick={() => handleCurrentLocation(`stop-${index}`)}
+                                                    disabled={detectingLocation === `stop-${index}`}
+                                                    className={clsx(
+                                                        "w-7 h-7 flex items-center justify-center rounded-lg transition-colors border",
+                                                        detectingLocation === `stop-${index}`
+                                                            ? "bg-green-50 text-green-600 border-green-200"
+                                                            : "bg-white text-blue-500 border-blue-100 hover:bg-blue-50 hover:text-blue-600"
+                                                    )}
+                                                    title="Detect"
+                                                >
+                                                    {detectingLocation === `stop-${index}` ? (
+                                                        <div className="w-3.5 h-3.5 rounded-full border-2 border-green-600 border-t-transparent animate-spin" />
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="3" /></svg>
+                                                    )}
+                                                </button>
+
+                                                <button
+                                                    onClick={() => openMapPicker(`stop-${index}`)}
+                                                    className="flex items-center justify-center w-7 h-7 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg transition-colors"
+                                                    title="Pick on Map"
+                                                >
+                                                    <Map className="w-3.5 h-3.5" />
+                                                </button>
+
+                                                <div className="w-px h-4 bg-gray-200" />
+
+                                                <button
+                                                    onClick={() => {
+                                                        const newStops = data.stops.filter((_, i) => i !== index);
+                                                        updateData({ stops: newStops, stopsCount: newStops.length });
+                                                    }}
+                                                    className="w-7 h-7 flex items-center justify-center text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Remove Stop"
+                                                >
+                                                    <div className="text-lg leading-none font-bold">×</div>
+                                                </button>
+                                            </div>
 
                                             {/* Suggestions for this specific input */}
                                             {activeSearchField === `stop-${index}` && suggestions.length > 0 && (
@@ -388,15 +483,6 @@ export function Step2Location() {
                                                 </div>
                                             )}
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                const newStops = data.stops.filter((_, i) => i !== index);
-                                                updateData({ stops: newStops, stopsCount: newStops.length });
-                                            }}
-                                            className="p-3 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                        >
-                                            <div className="w-5 h-5 flex items-center justify-center font-bold">×</div>
-                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -434,7 +520,7 @@ export function Step2Location() {
                                 onBlur={() => handleBlurGeocode(data.deliveryType === 'single' ? 'drop' : 'end')}
                                 placeholder="Where to deliver?"
                                 className={clsx(
-                                    "w-full pl-12 pr-[160px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
+                                    "w-full pl-12 pr-[140px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
                                     showErrors && !dropValid
                                         ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
                                         : "border-gray-100 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
@@ -517,6 +603,8 @@ export function Step2Location() {
                             pickerField === 'end' ? data.endLocation :
                                 pickerField?.startsWith('stop-') ? data.stops[parseInt(pickerField.split('-')[1])] : ''
                 }
+                defaultLat={mapDefaults?.lat}
+                defaultLng={mapDefaults?.lng}
             />
 
         </div>
