@@ -1,16 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
-  <!-- Truck Icon (Outline) -->
-  <path d="M80,140 L220,140 L220,220 L80,220 Z" fill="none" stroke="#555555" stroke-width="8" stroke-linejoin="round" />
-  <path d="M220,150 L260,150 L280,180 L280,220 L220,220" fill="none" stroke="#555555" stroke-width="8" stroke-linejoin="round" />
-  <!-- Wheels -->
-  <circle cx="120" cy="220" r="18" fill="white" stroke="#555555" stroke-width="8" />
-  <circle cx="240" cy="220" r="18" fill="white" stroke="#555555" stroke-width="8" />
-  
-  <!-- Leaf (Green filled, overlaying truck) -->
-  <path d="M160,220 Q160,100 240,60 Q300,100 240,220 Q180,240 160,220 Z" fill="#4CAF50" stroke="white" stroke-width="4" />
-  <path d="M160,220 Q200,160 240,60" fill="none" stroke="white" stroke-width="4" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" fill="none">
+  <!-- Truck Outline -->
+  <path d="M120 70H180V130H120V70Z" stroke="#6B7280" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M180 70H250V130H180V70Z" stroke="#6B7280" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M250 90L270 130H250V90Z" fill="#6B7280"/>
+  <circle cx="150" cy="130" r="12" fill="white" stroke="#6B7280" stroke-width="6"/>
+  <circle cx="230" cy="130" r="12" fill="white" stroke="#6B7280" stroke-width="6"/>
+
+  <!-- Leaf Overlay (Vibrant Green) -->
+  <path d="M190 130C190 80 230 40 230 40C230 40 270 80 270 130C270 155 250 170 230 170C210 170 190 155 190 130Z" fill="#22C55E" />
+  <path d="M230 40C230 40 230 130 210 160" stroke="#15803D" stroke-width="4" stroke-linecap="round"/>
 
   <!-- Text -->
-  <text x="50%" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="36" fill="#444444">EcoExpress</text>
-  <text x="50%" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#888888" letter-spacing="2">Logistics</text>
+  <text x="290" y="100" font-family="Arial, sans-serif" font-weight="bold" font-size="36" fill="#374151">EcoExpress</text>
+  <text x="290" y="130" font-family="Arial, sans-serif" font-size="20" fill="#6B7280" letter-spacing="1">Logistics</text>
 </svg>

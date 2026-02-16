@@ -25,6 +25,7 @@ export function Step0Landing() {
                         fill
                         className="object-contain drop-shadow-lg relative z-10"
                         priority
+                        sizes="144px"
                     />
                 </div>
 
