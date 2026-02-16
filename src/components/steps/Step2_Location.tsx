@@ -21,6 +21,7 @@ export function Step2Location() {
     const [distance, setDistance] = useState<number>(0);
     const [activeSearchField, setActiveSearchField] = useState<string | null>(null);
     const [showErrors, setShowErrors] = useState(false);
+    const [detectingLocation, setDetectingLocation] = useState<string | null>(null);
 
     // Map Picker State
     const [showMapPicker, setShowMapPicker] = useState(false);
@@ -29,6 +30,54 @@ export function Step2Location() {
     const openMapPicker = (field: string) => {
         setPickerField(field);
         setShowMapPicker(true);
+    };
+
+    const handleCurrentLocation = async (field: 'pickup' | 'drop' | 'end' | string) => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        setDetectingLocation(field);
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const latLng = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                try {
+                    const address = await reverseGeocode(latLng);
+
+                    if (field === 'pickup') {
+                        updateData({ pickupLocation: address, pickupLatLng: latLng });
+                    } else if (field === 'drop') {
+                        updateData({ dropLocation: address, dropLatLng: latLng });
+                    } else if (field === 'end') {
+                        updateData({ endLocation: address, endLatLng: latLng });
+                    } else if (field.startsWith('stop-')) {
+                        const index = parseInt(field.split('-')[1]);
+                        const newStops = [...data.stops];
+                        newStops[index] = address;
+                        const newStopsLatLng = [...(data.stopsLatLng || [])];
+                        newStopsLatLng[index] = latLng;
+                        updateData({ stops: newStops, stopsLatLng: newStopsLatLng });
+                    }
+                } catch (error) {
+                    console.error('Error getting location:', error);
+                    alert('Could not fetch address details');
+                } finally {
+                    setDetectingLocation(null);
+                }
+            },
+            (error) => {
+                console.error('Geolocation error:', error);
+                setDetectingLocation(null);
+                alert('Please enable location services to use this feature');
+            },
+            { enableHighAccuracy: true }
+        );
     };
 
     // Helper: compute total road distance from all waypoints
@@ -186,6 +235,40 @@ export function Step2Location() {
         goToNextStep();
     };
 
+    const InputActions = ({ field }: { field: string }) => (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <button
+                onClick={() => handleCurrentLocation(field)}
+                disabled={detectingLocation === field}
+                className={clsx(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors border",
+                    detectingLocation === field
+                        ? "bg-green-50 text-green-600 border-green-200"
+                        : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"
+                )}
+                title="Use Current Location"
+            >
+                {detectingLocation === field ? (
+                    <span className="animate-pulse">Detecting...</span>
+                ) : (
+                    <>
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        Detect
+                    </>
+                )}
+            </button>
+            <div className="w-px h-4 bg-gray-200 mx-0.5" />
+            <button
+                onClick={() => openMapPicker(field)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-600 border border-gray-200 rounded-lg transition-colors text-[10px] font-bold uppercase tracking-wider"
+                title="Pick on Map"
+            >
+                <Map className="w-3 h-3" />
+                Map
+            </button>
+        </div>
+    );
+
     return (
         <div className="flex flex-col h-full bg-gray-50">
             {/* Header */}
@@ -228,7 +311,7 @@ export function Step2Location() {
                                 onBlur={() => handleBlurGeocode('pickup')}
                                 placeholder="Where to pick up?"
                                 className={clsx(
-                                    "w-full pl-12 pr-12 py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
+                                    "w-full pl-12 pr-[160px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
                                     showErrors && !pickupValid
                                         ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
                                         : "border-gray-100 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
@@ -237,14 +320,7 @@ export function Step2Location() {
                             {showErrors && !pickupValid && (
                                 <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* Pickup location is required</p>
                             )}
-                            {/* Map Picker CTA */}
-                            <button
-                                onClick={() => openMapPicker('pickup')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors border border-gray-100"
-                                title="Pick on Map"
-                            >
-                                <Map className="w-5 h-5" />
-                            </button>
+                            <InputActions field="pickup" />
                         </div>
                         {/* Suggestions for pickup */}
                         {activeSearchField === 'pickup' && suggestions.length > 0 && (
@@ -287,16 +363,10 @@ export function Step2Location() {
                                                     handleSearch(e.target.value, 'stop', index);
                                                 }}
                                                 placeholder={`Stop ${index + 1}`}
-                                                className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 outline-none transition-all text-sm font-medium bg-white shadow-sm"
+                                                className="w-full pl-10 pr-[150px] py-3 rounded-xl border border-gray-200 focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 outline-none transition-all text-sm font-medium bg-white shadow-sm"
                                             />
-                                            {/* Map Picker CTA */}
-                                            <button
-                                                onClick={() => openMapPicker(`stop-${index}`)}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors border border-gray-100"
-                                                title="Pick on Map"
-                                            >
-                                                <Map className="w-4 h-4" />
-                                            </button>
+                                            <InputActions field={`stop-${index}`} />
+
                                             {/* Suggestions for this specific input */}
                                             {activeSearchField === `stop-${index}` && suggestions.length > 0 && (
                                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-100 z-50 max-h-48 overflow-y-auto">
@@ -364,7 +434,7 @@ export function Step2Location() {
                                 onBlur={() => handleBlurGeocode(data.deliveryType === 'single' ? 'drop' : 'end')}
                                 placeholder="Where to deliver?"
                                 className={clsx(
-                                    "w-full pl-12 pr-14 py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
+                                    "w-full pl-12 pr-[160px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
                                     showErrors && !dropValid
                                         ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-50"
                                         : "border-gray-100 focus:border-[var(--primary)] focus:ring-4 focus:ring-green-50"
@@ -373,14 +443,7 @@ export function Step2Location() {
                             {showErrors && !dropValid && (
                                 <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* {data.deliveryType === 'single' ? 'Drop' : 'End point'} location is required</p>
                             )}
-                            {/* Map Picker CTA */}
-                            <button
-                                onClick={() => openMapPicker(data.deliveryType === 'single' ? 'drop' : 'end')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors border border-gray-100"
-                                title="Pick on Map"
-                            >
-                                <Map className="w-5 h-5" />
-                            </button>
+                            <InputActions field={data.deliveryType === 'single' ? 'drop' : 'end'} />
                         </div>
 
                         {/* Suggestions */}
