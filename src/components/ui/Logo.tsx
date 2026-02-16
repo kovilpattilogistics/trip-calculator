@@ -21,7 +21,7 @@ export function Logo({ className, size = 'md' }: LogoProps) {
     return (
         <div className={clsx("relative flex items-center justify-center", className)} style={{ width, height }}>
             <Image
-                src="/logo.svg"
+                src="/trip-calculator/logo.svg"
                 alt="EcoExpress"
                 fill
                 className="object-contain"
