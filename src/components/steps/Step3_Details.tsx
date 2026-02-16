@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWizard } from '@/components/wizard/WizardManager';
 import { ChevronLeft, ChevronRight, Package, Scale, ShoppingBag, Clock, Info } from 'lucide-react';
 import { clsx } from 'clsx';
+import { translations } from '@/lib/translations';
 
 const WEIGHT_PRESETS = [10, 25, 50, 100, 250, 500];
 
 export function Step3Details() {
-    const { data, updateData, goToNextStep, goToPreviousStep } = useWizard();
+    const { data, updateData, goToNextStep, goToPreviousStep, language, toggleLanguage } = useWizard();
+    const t = translations[language];
 
     // Local weight state for smooth typing
     const [localWeight, setLocalWeight] = useState(String(data.weight));
@@ -49,7 +51,27 @@ export function Step3Details() {
     const capacityPercent = Math.min(100, (displayWeight / 1000) * 100);
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-gray-50 relative">
+            {/* Language Toggle */}
+            <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+                <button
+                    onClick={toggleLanguage}
+                    className="bg-white/90 backdrop-blur shadow-sm border border-gray-200 rounded-full px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                    <span>{language === 'en' ? '🇺🇸 EN' : '🇮🇳 தமிழ்'}</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-400 font-normal">{language === 'en' ? 'தமிழ்' : 'English'}</span>
+                </button>
+
+                {/* Floating Prompt - Moving Animation */}
+                <div
+                    onClick={toggleLanguage}
+                    className="cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-bounce hover:scale-105 transition-transform"
+                >
+                    {t.switch_promo}
+                </div>
+            </div>
+
             {/* Header */}
             <div className="bg-white px-6 py-4 shadow-sm z-10 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600" />
@@ -61,7 +83,7 @@ export function Step3Details() {
                     <div className="w-8" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    What are you sending?
+                    {t.step3_title}
                 </h2>
             </div>
 
@@ -72,7 +94,7 @@ export function Step3Details() {
                     <div className="flex items-center justify-between mb-3">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-2">
                             <Scale className="w-4 h-4" />
-                            Weight (Kg)
+                            {t.weight_input_label}
                         </label>
                     </div>
 
@@ -95,7 +117,7 @@ export function Step3Details() {
                                     min={1}
                                     max={1000}
                                 />
-                                <div className="text-sm font-medium text-gray-400 uppercase mt-1">Kilograms</div>
+                                <div className="text-sm font-medium text-gray-400 uppercase mt-1">{t.weight_unit}</div>
                             </div>
 
                             <button
@@ -126,12 +148,12 @@ export function Step3Details() {
 
                         {displayWeight < 10 && (
                             <div className="mt-3 p-2.5 bg-red-50 text-red-600 text-xs font-medium rounded-lg text-center">
-                                ⚠️ Minimum weight is 10 kg
+                                {t.min_weight_error}
                             </div>
                         )}
                         {displayWeight > 500 && (
                             <div className="mt-3 p-2.5 bg-orange-50 text-orange-700 text-xs font-medium rounded-lg text-center">
-                                ℹ️ For bulk orders &gt;500kg, better rates may apply via call.
+                                {t.bulk_weight_info}
                             </div>
                         )}
                     </div>
@@ -140,7 +162,7 @@ export function Step3Details() {
                 {/* Capacity Bar */}
                 <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Vehicle Capacity</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{t.vehicle_capacity_label}</span>
                         <span className="text-xs font-bold text-gray-700">{displayWeight} / 1000 kg</span>
                     </div>
                     <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -155,7 +177,7 @@ export function Step3Details() {
                         />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-1.5 font-medium">
-                        {displayWeight > 100 ? '🚛 Cargo Auto / Tata Ace' : '🏍️ Bike / Scooter'}
+                        {displayWeight > 100 ? t.vehicle_type_large : t.vehicle_type_small}
                     </p>
                 </div>
 
@@ -163,11 +185,11 @@ export function Step3Details() {
                 <section>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                         <Package className="w-4 h-4" />
-                        Product Type
+                        {t.product_type_label}
                     </label>
                     <input
                         type="text"
-                        placeholder="e.g. Oil Cans, Rice Bags, Electronics..."
+                        placeholder={t.product_type_placeholder}
                         value={data.productType || ''}
                         onChange={(e) => updateData({ productType: e.target.value })}
                         className="w-full bg-white p-4 rounded-xl border border-gray-200 text-gray-900 font-medium placeholder:text-gray-400 focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-green-50 transition-all"
@@ -179,14 +201,14 @@ export function Step3Details() {
                     <section>
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                             <Clock className="w-4 h-4" />
-                            Expected Unloading Time
+                            {t.waiting_time_label}
                         </label>
                         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-3xl font-black text-orange-600">
                                     {data.expectedWaitingHours}
                                 </span>
-                                <span className="text-sm font-medium text-gray-400 uppercase">Hours</span>
+                                <span className="text-sm font-medium text-gray-400 uppercase">{t.waiting_unit}</span>
                             </div>
 
                             <input
@@ -207,9 +229,10 @@ export function Step3Details() {
 
                             <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-100">
                                 <Info className="w-4 h-4 text-green-600 shrink-0" />
-                                <span className="text-xs text-green-700 font-medium">
-                                    💡 First 1 hour is <strong>FREE</strong>! Extra hours: ₹200/hour.
-                                </span>
+                                <span
+                                    className="text-xs text-green-700 font-medium"
+                                    dangerouslySetInnerHTML={{ __html: t.waiting_info }}
+                                />
                             </div>
                         </div>
                     </section>
@@ -222,7 +245,7 @@ export function Step3Details() {
                     onClick={goToNextStep}
                     className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-lg font-bold bg-gradient-to-r from-[var(--primary)] to-emerald-600 text-white hover:from-[#1b5e20] hover:to-emerald-700 transform active:scale-95 shadow-md shadow-green-200/50 transition-all"
                 >
-                    GET PRICE
+                    {t.get_price_btn}
                     <ChevronRight className="w-5 h-5" />
                 </button>
             </div>

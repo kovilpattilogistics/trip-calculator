@@ -4,10 +4,12 @@ import React from 'react';
 import { useWizard } from '@/components/wizard/WizardManager';
 import { Store, Truck, ChevronRight, ChevronLeft, Calendar, Zap, TruckIcon } from 'lucide-react';
 import { clsx } from 'clsx';
+import { translations } from '@/lib/translations';
 
 export function Step1TypeSelection() {
-    const { data, updateData, goToNextStep, goToPreviousStep } = useWizard();
+    const { data, updateData, goToNextStep, goToPreviousStep, language, toggleLanguage } = useWizard();
     const [showInfo, setShowInfo] = React.useState<string | null>(null);
+    const t = translations[language];
 
     const handleDeliverySelect = (type: 'single' | 'multiple') => {
         updateData({ deliveryType: type });
@@ -25,8 +27,8 @@ export function Step1TypeSelection() {
     const serviceTypes = [
         {
             id: 'scheduled' as const,
-            label: 'Standard (Shared)',
-            desc: 'Cheapest option. Goods share the truck.',
+            label: t.std_label,
+            desc: t.std_desc,
             icon: Calendar,
             color: 'text-blue-600',
             bg: 'bg-blue-50',
@@ -34,13 +36,13 @@ export function Step1TypeSelection() {
             ring: 'ring-blue-500',
             border: 'border-blue-500',
             gradient: 'from-blue-50 to-blue-100/50',
-            badge: '💰 Best Value',
-            info: 'We combine your goods with others. It takes a bit longer but saves you money!',
+            badge: t.std_badge,
+            info: t.std_info,
         },
         {
             id: 'dedicated' as const,
-            label: 'Full Vehicle',
-            desc: 'Private truck just for you.',
+            label: t.full_vehicle_label,
+            desc: t.full_vehicle_desc,
             icon: TruckIcon,
             color: 'text-orange-600',
             bg: 'bg-orange-50',
@@ -48,27 +50,47 @@ export function Step1TypeSelection() {
             ring: 'ring-orange-500',
             border: 'border-orange-500',
             gradient: 'from-orange-50 to-orange-100/50',
-            badge: '⭐ Private',
-            info: 'You get the whole truck. No sharing. Best for large loads or sensitive items.',
+            badge: t.full_vehicle_badge,
+            info: t.full_vehicle_info,
         },
         {
             id: 'express' as const,
-            label: 'Urgent',
-            desc: 'Priority speed. Same day delivery.',
-            icon: Zap,
+            label: t.urgent_label,
+            desc: t.urgent_desc,
+            icon: TruckIcon, // Using TruckIcon as placeholder if Zap not available or keep Zap
             color: 'text-purple-600',
             bg: 'bg-purple-50',
             bgSolid: 'bg-purple-600',
             ring: 'ring-purple-500',
             border: 'border-purple-500',
             gradient: 'from-purple-50 to-purple-100/50',
-            badge: '⚡ Fastest',
-            info: 'We drop everything to deliver your goods immediately. Costs a bit more.',
+            badge: t.urgent_badge,
+            info: t.urgent_info,
         },
     ];
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-gray-50 relative">
+            {/* Language Toggle - Absolute Position Top Right */}
+            <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+                <button
+                    onClick={toggleLanguage}
+                    className="bg-white/90 backdrop-blur shadow-sm border border-gray-200 rounded-full px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                    <span>{language === 'en' ? '🇺🇸 EN' : '🇮🇳 தமிழ்'}</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-400 font-normal">{language === 'en' ? 'தமிழ்' : 'English'}</span>
+                </button>
+
+                {/* Floating Prompt - Moving Animation */}
+                <div
+                    onClick={toggleLanguage}
+                    className="cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-bounce hover:scale-105 transition-transform"
+                >
+                    {t.switch_promo}
+                </div>
+            </div>
+
             {/* Header */}
             <div className="bg-white px-6 py-4 shadow-sm z-10 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600" />
@@ -79,10 +101,10 @@ export function Step1TypeSelection() {
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Step 1 of 4</span>
                     <div className="w-8" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    What are you sending?
+                <h2 className="text-xl font-bold text-gray-900 leading-tight pr-16">
+                    {t.step1_title}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">Choose the best option for your goods.</p>
+                <p className="text-sm text-gray-500 mt-1">{t.step1_subtitle}</p>
             </div>
 
             <div className="flex-1 p-6 space-y-8 overflow-y-auto">
@@ -90,7 +112,7 @@ export function Step1TypeSelection() {
                 {/* Delivery Type */}
                 <section>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block flex items-center gap-2">
-                        1. Trip Type <span className="text-gray-300 font-normal normal-case">(Click one)</span>
+                        {t.trip_type_label}
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                         {/* Direct Trip */}
@@ -111,9 +133,9 @@ export function Step1TypeSelection() {
                                 <Store className="w-6 h-6" />
                             </div>
                             <h3 className={clsx("font-bold text-base leading-tight", data.deliveryType === 'single' ? "text-[var(--primary)]" : "text-gray-900")}>
-                                Direct Trip
+                                {t.direct_trip_label}
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1">Pickup ➔ Drop</p>
+                            <p className="text-xs text-gray-500 mt-1">{t.direct_trip_desc}</p>
                         </button>
 
                         {/* Multi-Stop */}
@@ -134,9 +156,9 @@ export function Step1TypeSelection() {
                                 <Truck className="w-6 h-6" />
                             </div>
                             <h3 className={clsx("font-bold text-base leading-tight", data.deliveryType === 'multiple' ? "text-[var(--primary)]" : "text-gray-900")}>
-                                Multi-Stop
+                                {t.multi_stop_label}
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1">Many Drops (2+)</p>
+                            <p className="text-xs text-gray-500 mt-1">{t.multi_stop_desc}</p>
                         </button>
                     </div>
                 </section>
@@ -144,11 +166,14 @@ export function Step1TypeSelection() {
                 {/* Service Type */}
                 <section>
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3 block flex items-center gap-2">
-                        2. Service Level <span className="text-gray-300 font-normal normal-case">(Choose speed/cost)</span>
+                        {t.service_level_label}
                     </label>
                     <div className="space-y-3">
                         {serviceTypes.map((svc) => {
                             const Icon = svc.icon;
+                            // Fix for Zap icon mapping if needed, otherwise rely on import
+                            const ValidIcon = Icon === Zap ? Zap : Icon;
+
                             const isSelected = data.serviceType === svc.id;
                             const isInfoOpen = showInfo === svc.id;
 
@@ -175,7 +200,7 @@ export function Step1TypeSelection() {
                                                 "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-sm",
                                                 isSelected ? `${svc.bgSolid} text-white` : "bg-gray-100 text-gray-400"
                                             )}>
-                                                <Icon className="w-6 h-6" />
+                                                <ValidIcon className="w-6 h-6" />
                                             </div>
                                             <div className="flex-1 min-w-0 pt-0.5">
                                                 <div className="flex items-center gap-2">
@@ -226,7 +251,7 @@ export function Step1TypeSelection() {
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                     )}
                 >
-                    CONTINUE
+                    {t.continue_btn}
                     <ChevronRight className="w-5 h-5" />
                 </button>
             </div>

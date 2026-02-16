@@ -6,6 +6,7 @@ import { MessageCircle, Phone, RotateCcw, ChevronDown, ChevronUp, ChevronLeft, C
 import { useWizard } from '@/components/wizard/WizardManager';
 import { clsx } from 'clsx';
 import dynamic from 'next/dynamic';
+import { translations, Translation } from '@/lib/translations';
 
 // Dynamically import RouteMap to avoid SSR issues with Leaflet
 const RouteMap = dynamic(() => import('@/components/ui/RouteMap'), {
@@ -61,6 +62,7 @@ function PricingCard({
     borderColor,
     bgColor,
     tripInfo,
+    t
 }: {
     tier: PriceBreakdown;
     isSelected: boolean;
@@ -70,6 +72,7 @@ function PricingCard({
     borderColor: string;
     bgColor: string;
     tripInfo: TripInfo;
+    t: Translation;
 }) {
     const [showDetails, setShowDetails] = useState(false);
 
@@ -107,7 +110,7 @@ function PricingCard({
                     showDetails ? "text-gray-600" : "text-[var(--primary)] hover:text-green-700"
                 )}
             >
-                {showDetails ? 'Hide details' : '📋 View breakdown'}
+                {showDetails ? t.hide_breakdown_btn : t.view_breakdown_btn}
                 {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
 
@@ -115,42 +118,42 @@ function PricingCard({
                 <div className="mt-3 pt-3 border-t border-gray-100 space-y-4">
                     {/* Trip Details */}
                     <div className="space-y-2.5">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Trip Details</p>
-                        <InfoRow icon={MapPin} label="Pickup" value={tripInfo.pickup} color="bg-green-600" />
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.trip_details_label}</p>
+                        <InfoRow icon={MapPin} label={t.pickup_label} value={tripInfo.pickup} color="bg-green-600" />
                         {tripInfo.stops.length > 0 && tripInfo.stops.map((stop, i) => (
                             <InfoRow key={i} icon={Package} label={`Stop ${String.fromCharCode(65 + i)}`} value={stop} color="bg-orange-500" />
                         ))}
-                        <InfoRow icon={MapPin} label="Drop" value={tripInfo.drop} color="bg-red-500" />
+                        <InfoRow icon={MapPin} label={t.drop_label} value={tripInfo.drop} color="bg-red-500" />
                         <div className="grid grid-cols-3 gap-2 pt-1">
                             <div className="bg-gray-50 rounded-lg p-2 text-center">
                                 <Route className="w-3.5 h-3.5 mx-auto text-gray-400 mb-0.5" />
                                 <p className="text-xs font-bold text-gray-800">{tripInfo.distance} km</p>
-                                <p className="text-[9px] text-gray-400">Distance</p>
+                                <p className="text-[9px] text-gray-400">{t.distance_label}</p>
                             </div>
                             <div className="bg-gray-50 rounded-lg p-2 text-center">
                                 <Weight className="w-3.5 h-3.5 mx-auto text-gray-400 mb-0.5" />
                                 <p className="text-xs font-bold text-gray-800">{tripInfo.weight} kg</p>
-                                <p className="text-[9px] text-gray-400">Weight</p>
+                                <p className="text-[9px] text-gray-400">{t.weight_summary_label}</p>
                             </div>
                             <div className="bg-gray-50 rounded-lg p-2 text-center">
                                 <Clock className="w-3.5 h-3.5 mx-auto text-gray-400 mb-0.5" />
                                 <p className="text-xs font-bold text-gray-800">{tripInfo.waitingHours} hr</p>
-                                <p className="text-[9px] text-gray-400">Waiting</p>
+                                <p className="text-[9px] text-gray-400">{t.waiting_label}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Fare Breakdown */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Fare Breakdown</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.fare_breakdown_label}</p>
                         <div className="text-xs text-gray-600 space-y-1.5 bg-gray-50 rounded-lg p-3">
-                            <BreakdownRow label="Base Charge" value={tier.base} />
-                            <BreakdownRow label="Stops Charge" value={tier.stopsCharge} />
-                            <BreakdownRow label="Weight Charge" value={tier.weightCharge} />
-                            <BreakdownRow label="Distance Charge" value={tier.distanceCharge} />
-                            <BreakdownRow label="Waiting Charge" value={tier.waitingCharge} />
+                            <BreakdownRow label={t.base_charge_label} value={tier.base} />
+                            <BreakdownRow label={t.stops_charge_label} value={tier.stopsCharge} />
+                            <BreakdownRow label={t.weight_charge_label} value={tier.weightCharge} />
+                            <BreakdownRow label={t.distance_charge_label} value={tier.distanceCharge} />
+                            <BreakdownRow label={t.waiting_charge_label} value={tier.waitingCharge} />
                             <div className="flex justify-between font-bold pt-2 border-t border-gray-200 text-gray-900 text-sm">
-                                <span>Total</span>
+                                <span>{t.total_label}</span>
                                 <span>₹ {tier.total}</span>
                             </div>
                         </div>
@@ -169,7 +172,8 @@ function PricingCard({
 }
 
 export function Step4QuoteView({ quote, serviceType }: Props) {
-    const { resetWizard, goToPreviousStep, data } = useWizard();
+    const { resetWizard, goToPreviousStep, data, language, toggleLanguage } = useWizard();
+    const t = translations[language];
 
     const selectedTier = quote[serviceType];
 
@@ -238,7 +242,19 @@ export function Step4QuoteView({ quote, serviceType }: Props) {
     const dest = data.deliveryType === 'single' ? data.dropLocation : data.endLocation;
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-gray-50 relative">
+            {/* Language Toggle */}
+            <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+                <button
+                    onClick={toggleLanguage}
+                    className="bg-white/90 backdrop-blur shadow-sm border border-gray-200 rounded-full px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                    <span>{language === 'en' ? '🇺🇸 EN' : '🇮🇳 தமிழ்'}</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-400 font-normal">{language === 'en' ? 'தமிழ்' : 'English'}</span>
+                </button>
+            </div>
+
             {/* Header */}
             <div className="bg-gradient-to-br from-[var(--primary)] via-emerald-600 to-green-700 px-6 py-6 text-white shadow-lg rounded-b-3xl z-10 relative overflow-hidden">
                 {/* Decorative circles */}
@@ -246,11 +262,11 @@ export function Step4QuoteView({ quote, serviceType }: Props) {
                 <div className="absolute bottom-[-20px] left-[20%] w-24 h-24 rounded-full bg-white/5 blur-sm" />
                 <button onClick={goToPreviousStep} className="flex items-center gap-1 text-green-200 hover:text-white mb-3 -ml-1 text-sm font-medium transition-colors relative z-10">
                     <ChevronLeft className="w-4 h-4" />
-                    Back
+                    {t.back_btn}
                 </button>
                 <div className="flex items-center gap-2 mb-2 opacity-90 relative z-10">
                     <Check className="w-5 h-5" />
-                    <span className="text-sm font-bold uppercase tracking-widest">✨ Quote Ready</span>
+                    <span className="text-sm font-bold uppercase tracking-widest">{t.quote_ready}</span>
                 </div>
                 <h1 className="text-4xl font-black mb-1 relative z-10 tracking-tight">₹ {selectedTier.total}</h1>
                 <p className="text-green-100 text-sm relative z-10">{selectedTier.model}</p>
@@ -303,6 +319,7 @@ export function Step4QuoteView({ quote, serviceType }: Props) {
                                     waitingHours: data.expectedWaitingHours || 0,
                                     deliveryType: data.deliveryType || 'single',
                                 }}
+                                t={t}
                             />
                         );
                     })()}
@@ -316,7 +333,7 @@ export function Step4QuoteView({ quote, serviceType }: Props) {
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-lg font-bold bg-[#25D366] text-white hover:bg-[#128C7E] transform active:scale-95 shadow-md transition-all"
                 >
                     <MessageCircle className="w-5 h-5" />
-                    BOOK ON WHATSAPP
+                    {t.book_whatsapp_btn}
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -325,14 +342,14 @@ export function Step4QuoteView({ quote, serviceType }: Props) {
                         className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-gray-100 text-gray-700 hover:bg-gray-200"
                     >
                         <Phone className="w-4 h-4" />
-                        CALL US
+                        {t.call_us_btn}
                     </button>
                     <button
                         onClick={resetWizard}
                         className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                     >
                         <RotateCcw className="w-4 h-4" />
-                        RESTART
+                        {t.restart_btn}
                     </button>
                 </div>
             </div>

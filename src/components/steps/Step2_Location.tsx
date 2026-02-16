@@ -8,6 +8,7 @@ import { getRoadDistance } from '@/lib/road-distance';
 import { reverseGeocode, forwardGeocode } from '@/lib/reverse-geocode';
 import { clsx } from 'clsx';
 import { LocationPickerModal } from './LocationPickerModal';
+import { translations } from '@/lib/translations';
 import dynamic from 'next/dynamic';
 
 const RouteMap = dynamic(() => import('@/components/ui/RouteMap'), {
@@ -16,7 +17,8 @@ const RouteMap = dynamic(() => import('@/components/ui/RouteMap'), {
 });
 
 export function Step2Location() {
-    const { data, updateData, goToNextStep, goToPreviousStep } = useWizard();
+    const { data, updateData, goToNextStep, goToPreviousStep, language, toggleLanguage } = useWizard();
+    const t = translations[language];
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [distance, setDistance] = useState<number>(0);
     const [activeSearchField, setActiveSearchField] = useState<string | null>(null);
@@ -318,13 +320,33 @@ export function Step2Location() {
                 title="Pick on Map"
             >
                 <Map className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Map</span>
+                <span className="hidden sm:inline">{t.map_btn}</span>
             </button>
         </div>
     );
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-gray-50 relative">
+            {/* Language Toggle - Absolute Position Top Right */}
+            <div className="absolute top-4 right-4 z-50 flex flex-col items-end gap-2">
+                <button
+                    onClick={toggleLanguage}
+                    className="bg-white/90 backdrop-blur shadow-sm border border-gray-200 rounded-full px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                    <span>{language === 'en' ? '🇺🇸 EN' : '🇮🇳 தமிழ்'}</span>
+                    <span className="text-gray-300">|</span>
+                    <span className="text-gray-400 font-normal">{language === 'en' ? 'தமிழ்' : 'English'}</span>
+                </button>
+
+                {/* Floating Prompt - Moving Animation */}
+                <div
+                    onClick={toggleLanguage}
+                    className="cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-bounce hover:scale-105 transition-transform"
+                >
+                    {t.switch_promo}
+                </div>
+            </div>
+
             {/* Header */}
             <div className="bg-white px-6 py-4 shadow-sm z-20 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600" />
@@ -335,10 +357,10 @@ export function Step2Location() {
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Step 2 of 4</span>
                     <div className="w-8" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    Where are we going?
+                <h2 className="text-xl font-bold text-gray-900 leading-tight pr-16">
+                    {t.step2_title}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">Enter start and end points.</p>
+                <p className="text-sm text-gray-500 mt-1">{t.step2_subtitle}</p>
             </div>
 
             <div className="flex-1 p-6 space-y-8 overflow-y-auto">
@@ -351,7 +373,7 @@ export function Step2Location() {
                     <div className="relative z-10">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block flex items-center gap-2">
                             <span className="w-5 h-5 rounded-full bg-green-600 text-white flex items-center justify-center text-[10px] font-bold">1</span>
-                            Pickup Point <span className="text-green-600">(Start)</span>
+                            {t.pickup_label}
                         </label>
                         <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 z-10">
@@ -363,7 +385,7 @@ export function Step2Location() {
                                 onChange={(e) => handleSearch(e.target.value, 'pickup')}
                                 onFocus={() => setActiveSearchField('pickup')}
                                 onBlur={() => handleBlurGeocode('pickup')}
-                                placeholder="Where to pick up?"
+                                placeholder={t.pickup_placeholder}
                                 className={clsx(
                                     "w-full pl-12 pr-[140px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
                                     showErrors && !pickupValid
@@ -372,7 +394,7 @@ export function Step2Location() {
                                 )}
                             />
                             {showErrors && !pickupValid && (
-                                <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* Pickup location is required</p>
+                                <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">{t.pickup_error}</p>
                             )}
                             <InputActions field="pickup" />
                         </div>
@@ -397,7 +419,7 @@ export function Step2Location() {
                     {data.deliveryType === 'multiple' && (
                         <div className="space-y-4 pl-0">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wide block ml-8">
-                                Stops Between
+                                {t.stops_label}
                             </label>
 
                             {data.stops.map((stop, index) => (
@@ -495,7 +517,7 @@ export function Step2Location() {
                                     }}
                                     className="w-full py-3 bg-gray-50 border border-dashed border-gray-300 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-100 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
                                 >
-                                    <span>+ Add Stop in Between</span>
+                                    <span>{t.add_stop_btn}</span>
                                 </button>
                             </div>
                         </div>
@@ -506,7 +528,7 @@ export function Step2Location() {
                     <div className="relative z-10">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 block flex items-center gap-2">
                             <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-bold">2</span>
-                            {data.deliveryType === 'single' ? 'Drop Point' : 'Final Destination'} <span className="text-red-600">(End)</span>
+                            {data.deliveryType === 'single' ? t.drop_label : t.end_label}
                         </label>
                         <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 z-10">
@@ -518,7 +540,7 @@ export function Step2Location() {
                                 onChange={(e) => handleSearch(e.target.value, data.deliveryType === 'single' ? 'drop' : 'end')}
                                 onFocus={() => setActiveSearchField(data.deliveryType === 'single' ? 'drop' : 'end')}
                                 onBlur={() => handleBlurGeocode(data.deliveryType === 'single' ? 'drop' : 'end')}
-                                placeholder="Where to deliver?"
+                                placeholder={t.drop_placeholder}
                                 className={clsx(
                                     "w-full pl-12 pr-[140px] py-4 rounded-xl border-2 outline-none transition-all font-medium text-lg bg-white shadow-sm",
                                     showErrors && !dropValid
@@ -527,7 +549,7 @@ export function Step2Location() {
                                 )}
                             />
                             {showErrors && !dropValid && (
-                                <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">* {data.deliveryType === 'single' ? 'Drop' : 'End point'} location is required</p>
+                                <p className="text-xs text-red-500 font-medium mt-1.5 ml-1">{data.deliveryType === 'single' ? t.drop_error : t.end_error}</p>
                             )}
                             <InputActions field={data.deliveryType === 'single' ? 'drop' : 'end'} />
                         </div>
@@ -559,12 +581,12 @@ export function Step2Location() {
                             </div>
                             <div className="p-4 flex items-center justify-between text-sm border-t border-gray-100 bg-gray-50/50">
                                 <div className="flex flex-col gap-1 min-w-0">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Distance</span>
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t.dist_label}</span>
                                     <span className="font-bold text-gray-900 text-lg">{distance} km</span>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-xs text-green-600 font-bold bg-green-100 px-2 py-1 rounded-full">
-                                        Route Ready ✓
+                                        {t.route_ready}
                                     </span>
                                 </div>
                             </div>
@@ -575,7 +597,7 @@ export function Step2Location() {
                                 <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
                                     <Map className="w-5 h-5 text-gray-400" />
                                 </div>
-                                <p className="text-xs text-gray-500 font-medium">Enter locations to see map</p>
+                                <p className="text-xs text-gray-500 font-medium">{t.map_empty}</p>
                             </div>
                         </div>
                     )}
@@ -588,7 +610,7 @@ export function Step2Location() {
                     onClick={handleContinue}
                     className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-lg font-bold transition-all shadow-md shadow-green-200/50 bg-gradient-to-r from-[var(--primary)] to-emerald-600 text-white hover:from-[#1b5e20] hover:to-emerald-700 transform active:scale-95"
                 >
-                    CONTINUE
+                    {t.continue_btn}
                     <ChevronRight className="w-5 h-5" />
                 </button>
             </div>

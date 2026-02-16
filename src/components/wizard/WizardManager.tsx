@@ -28,6 +28,8 @@ interface WizardContextType {
     goToStep: (step: number) => void;
     updateData: (partialData: Partial<WizardData>) => void;
     resetWizard: () => void;
+    language: 'en' | 'ta';
+    toggleLanguage: () => void;
 }
 
 const defaultData: WizardData = {
@@ -51,6 +53,7 @@ const WizardContext = createContext<WizardContextType | undefined>(undefined);
 export function WizardProvider({ children }: { children: ReactNode }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [data, setData] = useState<WizardData>(defaultData);
+    const [language, setLanguage] = useState<'en' | 'ta'>('en');
 
     const goToNextStep = useCallback(() => setCurrentStep((prev) => Math.min(prev + 1, 4)), []);
     const goToPreviousStep = useCallback(() => setCurrentStep((prev) => Math.max(prev - 1, 0)), []);
@@ -65,6 +68,10 @@ export function WizardProvider({ children }: { children: ReactNode }) {
         setCurrentStep(0);
     }, []);
 
+    const toggleLanguage = useCallback(() => {
+        setLanguage((prev) => (prev === 'en' ? 'ta' : 'en'));
+    }, []);
+
     const value = useMemo(() => ({
         currentStep,
         data,
@@ -73,7 +80,9 @@ export function WizardProvider({ children }: { children: ReactNode }) {
         goToStep,
         updateData,
         resetWizard,
-    }), [currentStep, data, goToNextStep, goToPreviousStep, goToStep, updateData, resetWizard]);
+        language,
+        toggleLanguage,
+    }), [currentStep, data, goToNextStep, goToPreviousStep, goToStep, updateData, resetWizard, language, toggleLanguage]);
 
     return (
         <WizardContext.Provider value={value}>
