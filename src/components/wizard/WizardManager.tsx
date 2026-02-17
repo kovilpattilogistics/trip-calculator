@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode, useEffect } from 'react';
+import { getCookie, setCookie } from '@/lib/cookies';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 // Define the shape of our wizard state
 interface WizardData {
@@ -53,7 +55,36 @@ const WizardContext = createContext<WizardContextType | undefined>(undefined);
 export function WizardProvider({ children }: { children: ReactNode }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [data, setData] = useState<WizardData>(defaultData);
-    const [language, setLanguage] = useState<'en' | 'ta'>('en');
+    const [language, setLanguage] = useState<'en' | 'ta'>('en'); // Default to 'en' initially
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Initialize Language from URL -> LocalStorage -> Cookie -> Default
+    useEffect(() => {
+        const queryLang = searchParams?.get('lang');
+        if (queryLang === 'ta' || queryLang === 'en') {
+            setLanguage(queryLang); // URL overrides everything
+            // Persist to storage + cookies immediately
+            localStorage.setItem('eco_lang', queryLang);
+            setCookie('eco_lang', queryLang, 365);
+            return;
+        }
+
+        const storedLang = localStorage.getItem('eco_lang');
+        if (storedLang === 'ta' || storedLang === 'en') {
+            setLanguage(storedLang);
+            return;
+        }
+
+        const cookieLang = getCookie('eco_lang');
+        if (cookieLang === 'ta' || cookieLang === 'en') {
+            setLanguage(cookieLang);
+            // Sync to local storage if missing
+            localStorage.setItem('eco_lang', cookieLang);
+        }
+    }, [searchParams]);
 
     const goToNextStep = useCallback(() => setCurrentStep((prev) => Math.min(prev + 1, 4)), []);
     const goToPreviousStep = useCallback(() => setCurrentStep((prev) => Math.max(prev - 1, 0)), []);
@@ -69,8 +100,21 @@ export function WizardProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const toggleLanguage = useCallback(() => {
-        setLanguage((prev) => (prev === 'en' ? 'ta' : 'en'));
-    }, []);
+        setLanguage((prev) => {
+            const newLang = prev === 'en' ? 'ta' : 'en';
+
+            // 1. Update Persistent Storage
+            localStorage.setItem('eco_lang', newLang);
+            setCookie('eco_lang', newLang, 365);
+
+            // 2. Update URL Query Param (without reload)
+            const params = new URLSearchParams(window.location.search);
+            params.set('lang', newLang);
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+            return newLang;
+        });
+    }, [pathname, router]);
 
     const value = useMemo(() => ({
         currentStep,
