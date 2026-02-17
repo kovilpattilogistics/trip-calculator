@@ -42,7 +42,7 @@ export function Step0Landing() {
                 <div className="relative w-36 h-36 mb-2">
                     <div className="absolute inset-0 bg-green-200/30 rounded-full blur-xl animate-pulse" />
                     <Image
-                        src="/trip-calculator/logo.png"
+                        src="/logo.png"
                         alt="EcoExpress Logo"
                         fill
                         className="object-contain drop-shadow-lg relative z-10"
