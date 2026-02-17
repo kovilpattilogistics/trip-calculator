@@ -41,13 +41,16 @@ export function Step0Landing() {
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-5 relative z-10">
                 {/* Logo with glow */}
                 <div className="relative w-36 h-36 mb-2">
-                    src={BRAND.logo}
-                    alt="EcoExpress Logo"
-                    fill
-                    className="object-contain drop-shadow-lg relative z-10"
-                    priority
-                    sizes="144px"
-                    unoptimized
+                    <div className="absolute inset-0 bg-green-200/30 rounded-full blur-xl animate-pulse" />
+                    <Image
+                        src={BRAND.logo}
+                        alt="EcoExpress Logo"
+                        fill
+                        className="object-contain drop-shadow-lg relative z-10"
+                        priority
+                        sizes="144px"
+                        unoptimized
+                    />
                 </div>
 
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
