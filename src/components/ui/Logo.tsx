@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { clsx } from 'clsx';
+import logoSrc from '@/assets/logo.png';
 
 interface LogoProps {
     className?: string;
@@ -21,13 +22,13 @@ export function Logo({ className, size = 'md' }: LogoProps) {
     return (
         <div className={clsx("relative flex items-center justify-center", className)} style={{ width, height }}>
             <Image
-                src="/logo.png"
+                src={logoSrc}
                 alt="EcoExpress"
                 fill
                 className="object-contain"
                 sizes={`${width}px`}
                 priority
-                unoptimized
+                placeholder="blur"
             />
         </div>
     );

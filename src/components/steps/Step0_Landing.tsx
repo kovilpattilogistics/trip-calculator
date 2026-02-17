@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ArrowRight, CheckCircle, MapPin, Sparkles, Truck, Shield, Leaf } from 'lucide-react';
 import { useWizard } from '@/components/wizard/WizardManager';
 import { translations } from '@/lib/translations';
+import logoSrc from '@/assets/logo.png';
 
 export function Step0Landing() {
     const { goToNextStep, language, toggleLanguage } = useWizard();
@@ -42,13 +43,13 @@ export function Step0Landing() {
                 <div className="relative w-36 h-36 mb-2">
                     <div className="absolute inset-0 bg-green-200/30 rounded-full blur-xl animate-pulse" />
                     <Image
-                        src="/logo.png"
+                        src={logoSrc}
                         alt="EcoExpress Logo"
                         fill
                         className="object-contain drop-shadow-lg relative z-10"
                         priority
                         sizes="144px"
-                        unoptimized
+                        placeholder="blur"
                     />
                 </div>
 
