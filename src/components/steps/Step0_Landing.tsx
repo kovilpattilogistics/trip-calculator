@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ArrowRight, CheckCircle, MapPin, Sparkles, Truck, Shield, Leaf } from 'lucide-react';
 import { useWizard } from '@/components/wizard/WizardManager';
 import { translations } from '@/lib/translations';
-import logoSrc from '@/assets/logo.png';
+import { BRAND } from '@/lib/branding';
 
 export function Step0Landing() {
     const { goToNextStep, language, toggleLanguage } = useWizard();
@@ -41,16 +41,13 @@ export function Step0Landing() {
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-5 relative z-10">
                 {/* Logo with glow */}
                 <div className="relative w-36 h-36 mb-2">
-                    <div className="absolute inset-0 bg-green-200/30 rounded-full blur-xl animate-pulse" />
-                    <Image
-                        src={logoSrc}
-                        alt="EcoExpress Logo"
-                        fill
-                        className="object-contain drop-shadow-lg relative z-10"
-                        priority
-                        sizes="144px"
-                        placeholder="blur"
-                    />
+                    src={BRAND.logo}
+                    alt="EcoExpress Logo"
+                    fill
+                    className="object-contain drop-shadow-lg relative z-10"
+                    priority
+                    sizes="144px"
+                    unoptimized
                 </div>
 
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
