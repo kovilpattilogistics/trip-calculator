@@ -48,6 +48,7 @@ export function Step0Landing() {
                         className="object-contain drop-shadow-lg relative z-10"
                         priority
                         sizes="144px"
+                        unoptimized
                     />
                 </div>
 

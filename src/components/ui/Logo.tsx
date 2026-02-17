@@ -27,6 +27,7 @@ export function Logo({ className, size = 'md' }: LogoProps) {
                 className="object-contain"
                 sizes={`${width}px`}
                 priority
+                unoptimized
             />
         </div>
     );
